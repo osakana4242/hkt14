@@ -208,6 +208,12 @@ class Player {
 
 		this.score = 0;
 		this.sprite = sprite;
+		const collider = RectangleShape();
+		collider.width = 8;
+		collider.height = 8;
+		collider.alpha = 0.0;
+		this.collider = collider;
+
 		this.fireInterval = 50;
 		this.fireTime = 0;
 		this.rotation = Rotation.UP;
@@ -220,6 +226,11 @@ class Shield {
 		const sprite = Sprite("shield");
 		sprite.priority = 5;
 		this.sprite = sprite;
+		const collider = RectangleShape();
+		collider.width = 8;
+		collider.height = 32;
+		collider.alpha = 0.0;
+		this.collider = collider;
 		this.rotation = Rotation.UP;
 		this.isInSafeArea = true;
 	}
@@ -628,9 +639,11 @@ phina.define('MainScene', {
 
 		data.player = new Player();
 		data.player.sprite.addChildTo(this.layer1);
+		data.player.collider.addChildTo(this.layer1);
 
 		data.shield = new Shield();
 		data.shield.sprite.addChildTo(this.layer1);
+		data.shield.collider.addChildTo(this.layer1);
 
 		{
 			const label = Label({
@@ -837,6 +850,8 @@ phina.define('MainScene', {
 				player.sprite.y += vec.y;
 				player.sprite.x = MathHelper.clamp(player.sprite.x, safeArea.left, safeArea.right);
 				player.sprite.y = MathHelper.clamp(player.sprite.y, safeArea.top, safeArea.bottom);
+				player.collider.x = player.sprite.x;
+				player.collider.y = player.sprite.y;
 
 				const shield = this.data.shield;
 				const shieldVec = new Vector2();
@@ -847,6 +862,9 @@ phina.define('MainScene', {
 				shield.sprite.x = player.sprite.x + shieldVec.x;
 				shield.sprite.y = player.sprite.y + shieldVec.y;
 				shield.sprite.rotation = shield.rotation;
+				shield.collider.x = shield.sprite.x;
+				shield.collider.y = shield.sprite.y;
+				shield.collider.rotation = shield.sprite.rotation;
 
 				progress.elapsedTime = Math.min(progress.elapsedTime + this.app.ticker.deltaTime, progress.limitTime);
 				const t = progress.elapsedTime / progress.limitTime;
@@ -894,7 +912,7 @@ phina.define('MainScene', {
 					const enemyBulletArr = this.data.enemyBulletArr;
 					for (let i1 = 0; i1 < enemyBulletArr.length; i1++) {
 						const bullet = enemyBulletArr[i1];
-						if (!player.sprite.hitTestElement(bullet.sprite)) continue;
+						if (!player.collider.hitTestElement(bullet.sprite)) continue;
 						bullet.isActive = false;
 						ExplosionHelper.createExplosion(this, player.sprite);
 						progress.state = StateId.S3I;
@@ -906,7 +924,7 @@ phina.define('MainScene', {
 					const enemyArr = this.data.enemyArr;
 					for (let i1 = 0; i1 < enemyArr.length; i1++) {
 						const enemy = enemyArr[i1];
-						if (!player.sprite.hitTestElement(enemy.sprite)) continue;
+						if (!player.collider.hitTestElement(enemy.sprite)) continue;
 						enemy.isActive = false;
 						ExplosionHelper.createExplosion(this, player.sprite);
 						progress.state = StateId.S3I;
