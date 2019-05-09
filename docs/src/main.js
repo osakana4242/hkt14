@@ -2,15 +2,15 @@
 phina.globalize();
 
 var ASSETS = {
-  image: {
-	'enemy': './img/enemy.png',
-	'enemy_shot': './img/enemy_shot.png',
-	'ship': './img/ship.png',
-	'ship_shot': './img/ship_shot.png',
-	'shield': './img/shield.png',
-	'explosion_big': './img/explosion_big.png',
-	'speed_line': './img/speed_line.png',
-	'bg_02': './img/bg_02.png',
+	image: {
+		'enemy': './img/enemy.png',
+		'enemy_shot': './img/enemy_shot.png',
+		'ship': './img/ship.png',
+		'ship_shot': './img/ship_shot.png',
+		'shield': './img/shield.png',
+		'explosion_big': './img/explosion_big.png',
+		'speed_line': './img/speed_line.png',
+		'bg_02': './img/bg_02.png',
 	},
 	spritesheet: {
 		"explosion_big": {
@@ -22,11 +22,11 @@ var ASSETS = {
 				"rows": 1, // フレーム数（縦）
 			},
 			// アニメーション情報
-			"animations" : {
+			"animations": {
 				"explosion_big": { // アニメーション名
-				"frames": [0, 1, 2, 3], // フレーム番号範囲
-				"next": "", // 次のアニメーション
-				"frequency": 6, // アニメーション間隔
+					"frames": [0, 1, 2, 3], // フレーム番号範囲
+					"next": "", // 次のアニメーション
+					"frequency": 6, // アニメーション間隔
 				},
 			}
 		},
@@ -428,11 +428,12 @@ class OrderWork {
 
 class OrderUpdateFunc {
 	static moveTo(scene, orderWork, enemy) {
-		switch(orderWork.state) {
+		if (orderWork.state === 0) {
+			orderWork.startX = enemy.sprite.x;
+			orderWork.startY = enemy.sprite.y;
+		}
+		switch (orderWork.state) {
 			case 0:
-				orderWork.startX = enemy.sprite.x;
-				orderWork.startY = enemy.sprite.y;
-				break;
 			case 1:
 			case 2:
 				const t = MathHelper.tForLerpClapmed(orderWork.time, orderWork.orderData.duration);
@@ -445,10 +446,11 @@ class OrderUpdateFunc {
 	}
 
 	static rotateTo(scene, orderWork, enemy) {
-		switch(orderWork.state) {
+		if (orderWork.state === 0) {
+			orderWork.startAngle = enemy.sprite.rotation;
+		}
+		switch (orderWork.state) {
 			case 0:
-				orderWork.startAngle = enemy.sprite.rotation;
-				break;
 			case 1:
 			case 2:
 				const t = MathHelper.tForLerpClapmed(orderWork.time, orderWork.orderData.duration);
@@ -459,7 +461,7 @@ class OrderUpdateFunc {
 	}
 
 	static shot(scene, orderWork, enemy) {
-		switch(orderWork.state) {
+		switch (orderWork.state) {
 			case 0:
 				orderWork.prevTime = 0;
 				break;
@@ -483,8 +485,8 @@ class OrderWorkHelper {
 		switch (orderWork.state) {
 			case 0:
 				if (orderWork.orderData.time <= orderWork.time) {
-					orderWork.updateFunc(scene, orderWork, enemy);
 					orderWork.time = 0;
+					orderWork.updateFunc(scene, orderWork, enemy);
 					orderWork.state = 1;
 				}
 				break;
@@ -569,7 +571,7 @@ class MoveWorkHelper {
 
 	static update(scene, moveWork, deltaTime, enemy) {
 		if (!enemy.isActive) return;
-		if (MoveWorkHelper.isEnd(moveWork)) return; 
+		if (MoveWorkHelper.isEnd(moveWork)) return;
 		const orderWorkArr = moveWork.orderWorkArr;
 		for (let i = 0; i < orderWorkArr.length; i++) {
 			const orderWork = orderWorkArr[i];
@@ -593,9 +595,9 @@ class ObjectArrayHelper {
 
 // MainScene クラスを定義
 phina.define('MainScene', {
-  superClass: 'DisplayScene',
-  init: function(options) {
-    this.superInit(options);
+	superClass: 'DisplayScene',
+	init: function (options) {
+		this.superInit(options);
 		// 背景色を指定
 		this.backgroundColor = '#444444';
 
@@ -694,9 +696,9 @@ phina.define('MainScene', {
 			this.centerLabel = label;
 		}
 		this.data = data;
-  },
+	},
 
-	createSmoke: function(pos) {
+	createSmoke: function (pos) {
 		const sprite = CircleShape({
 			width: 32,
 			height: 32,
@@ -727,7 +729,7 @@ phina.define('MainScene', {
 		return smoke;
 	},
 
-	createPlayerBullet: function(pos, rotation) {
+	createPlayerBullet: function (pos, rotation) {
 		const sprite = Sprite('ship_shot');
 		sprite.rotation = rotation;
 		sprite.x = pos.x;
@@ -745,7 +747,7 @@ phina.define('MainScene', {
 		return bullet;
 	},
 
-	createEnemyBullet: function(pos, rotation) {
+	createEnemyBullet: function (pos, rotation) {
 		const sprite = Sprite('enemy_shot');
 		sprite.rotation = rotation;
 		sprite.x = pos.x;
@@ -763,7 +765,7 @@ phina.define('MainScene', {
 		return bullet;
 	},
 
-	createSpeedLine: function(pos, rotation) {
+	createSpeedLine: function (pos, rotation) {
 		const sprite = Sprite('speed_line');
 		sprite.rotation = rotation;
 		sprite.x = pos.x;
@@ -781,22 +783,22 @@ phina.define('MainScene', {
 		return speedLine;
 	},
 
-	getAppInput: function() {
+	getAppInput: function () {
 		const key = this.app.keyboard;
 		const appInput = {};
 		const speed = 1;
 		const dir = phina.geom.Vector2(0, 0);
-		if (key.getKey('left'))  { dir.x -= speed; }
+		if (key.getKey('left')) { dir.x -= speed; }
 		if (key.getKey('right')) { dir.x += speed; }
-		if (key.getKey('down'))  { dir.y += speed; }
-		if (key.getKey('up'))    { dir.y -= speed; }
+		if (key.getKey('down')) { dir.y += speed; }
+		if (key.getKey('up')) { dir.y -= speed; }
 		appInput.dir = dir.normalize();
 		appInput.putFire = false; // key.getKey('z');
 		appInput.hasFixShield = key.getKey('z');
 		return appInput;
 	},
 
-	update: function() {
+	update: function () {
 		const appInput = this.getAppInput();
 
 		const player = this.data.player;
@@ -1011,24 +1013,24 @@ phina.define('MainScene', {
 });
 
 // メイン処理
-phina.main(function() {
-  // アプリケーション生成
-  let app = GameApp({
-    startLabel: 'main', // メインシーンから開始する
+phina.main(function () {
+	// アプリケーション生成
+	let app = GameApp({
+		startLabel: 'main', // メインシーンから開始する
 		fps: 60,
 		width: DF.SC_W,
 		height: DF.SC_H,
-    assets: ASSETS,
+		assets: ASSETS,
 		scenes: [
-				{
-					className: 'MainScene',
-					label: 'main',
-					nextLabel: 'main',
-				},
+			{
+				className: 'MainScene',
+				label: 'main',
+				nextLabel: 'main',
+			},
 		],
-  });
+	});
 
-  // アプリケーション実行
-  app.run();
+	// アプリケーション実行
+	app.run();
 });
 
